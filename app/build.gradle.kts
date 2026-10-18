@@ -73,6 +73,9 @@ dependencies {
 
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.glance.material3)
+    // Glance pulls in WorkManager 2.7.1, whose R8 rules don't keep the constructors it creates
+    // reflectively (crash on start / widget stuck loading in release). Newer versions fix that.
+    implementation(libs.androidx.work.runtime)
     implementation(libs.androidx.glance.preview)
     debugImplementation(libs.androidx.glance.appwidget.preview)
 
