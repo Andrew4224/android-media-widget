@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Media Widget</string>
+    <string name="widget_name">Media controls</string>
+    <string name="widget_description">Shows and controls the current media playback in a single row.</string>
+
+    <string name="widget_grant_access">Tap to grant access</string>
+    <string name="widget_nothing_playing">Nothing is playing</string>
+    <string name="widget_unknown_title">Unknown title</string>
+
+    <string name="cd_cover">Open player</string>
+    <string name="cd_previous">Previous</string>
+    <string name="cd_play">Play</string>
+    <string name="cd_pause">Pause</string>
+    <string name="cd_next">Next</string>
+
+    <string name="settings_access_title">Notification access</string>
+    <string name="settings_access_granted">Access granted.</string>
+    <string name="settings_access_missing">Access not granted. The widget cannot see any player yet.</string>
+    <string name="settings_access_reason">Android only lets apps with notification access read active media sessions. Notifications themselves are never read or stored.</string>
+    <string name="settings_open_access">Open settings</string>
+    <string name="settings_session_title">Detected session</string>
+    <string name="settings_session_none">No active media session.</string>
+    <string name="settings_session_package">Player: %1$s</string>
+    <string name="settings_session_track">Title: %1$s</string>
+    <string name="settings_howto_title">Adding the widget</string>
+    <string name="settings_howto_text">Long-press an empty spot on your home screen, choose \"Widgets\", find \"Media Widget\" and drag \"Media controls\" onto the home screen. It can be resized to a single row.</string>
+</resources>
