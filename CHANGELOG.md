@@ -20,5 +20,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Settings screen showing the notification access status and the detected session.
 - GitHub Actions workflows for CI builds and signed tag releases.
 
-[Unreleased]: https://github.com/OWNER/REPO/compare/v0.1...HEAD
-[0.1]: https://github.com/OWNER/REPO/releases/tag/v0.1
+[Unreleased]: https://github.com/Andrew4224/android-media-widget/compare/v0.1...HEAD
+[0.1]: https://github.com/Andrew4224/android-media-widget/releases/tag/v0.1
