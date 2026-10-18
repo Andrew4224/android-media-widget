@@ -3,6 +3,12 @@
 build/
 .kotlin/
 
+# Output of Android Studio's "Generate Signed App Bundle or APK"
+app/release/
+app/debug/
+*.apk
+*.aab
+
 # Android Studio / IntelliJ
 .idea/
 *.iml
