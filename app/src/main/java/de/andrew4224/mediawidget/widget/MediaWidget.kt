@@ -171,7 +171,7 @@ class MediaWidget : GlanceAppWidget() {
         private fun TrackInfo(state: MediaState.Active, open: Action, singleLine: Boolean) {
             val title = state.title ?: stringResource(R.string.widget_unknown_title)
             val artist = state.artist?.takeIf { it.isNotBlank() }
-            val titleStyle = TextStyle(color = onPrimaryContainer, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            val titleStyle = TextStyle(color = onPrimaryContainer, fontSize = 16.sp, fontWeight = FontWeight.Medium)
             Column(modifier = GlanceModifier.fillMaxWidth().clickable(open)) {
                 if (singleLine) {
                     Text(
@@ -185,7 +185,7 @@ class MediaWidget : GlanceAppWidget() {
                         Text(
                             text = artist,
                             maxLines = 1,
-                            style = TextStyle(color = onPrimaryContainer, fontSize = 12.sp),
+                            style = TextStyle(color = onPrimaryContainer, fontSize = 14.sp),
                         )
                     }
                 }
