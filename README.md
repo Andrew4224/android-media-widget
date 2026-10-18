@@ -88,4 +88,4 @@ decodes the keystore to a temporary file and sets `KEYSTORE_FILE`.
 
 ## License
 
-TBD
+Licensed under the [Apache License 2.0](LICENSE).
