@@ -1,7 +1,8 @@
 package de.andrew4224.mediawidget.ui
 
-import android.content.res.Configuration
-import android.os.Build
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.os.Build.VERSION.SDK_INT
+import android.os.Build.VERSION_CODES.S
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -26,6 +28,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.andrew4224.mediawidget.R
+import de.andrew4224.mediawidget.media.MediaSessions.SPOTIFY_PACKAGE
 
 @Composable
 fun SettingsScreen(state: SettingsUiState, onOpenNotificationSettings: () -> Unit) {
@@ -39,7 +42,7 @@ fun SettingsScreen(state: SettingsUiState, onOpenNotificationSettings: () -> Uni
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium)
+                Text(stringResource(R.string.app_name), style = typography.headlineMedium)
 
                 Section(stringResource(R.string.settings_access_title)) {
                     Text(
@@ -47,7 +50,7 @@ fun SettingsScreen(state: SettingsUiState, onOpenNotificationSettings: () -> Uni
                             if (state.hasNotificationAccess) R.string.settings_access_granted else R.string.settings_access_missing,
                         ),
                     )
-                    Text(stringResource(R.string.settings_access_reason), style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.settings_access_reason), style = typography.bodySmall)
                     Button(onClick = onOpenNotificationSettings) {
                         Text(stringResource(R.string.settings_open_access))
                     }
@@ -79,7 +82,7 @@ fun SettingsScreen(state: SettingsUiState, onOpenNotificationSettings: () -> Uni
 private fun Section(title: String, content: @Composable () -> Unit) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(title, style = MaterialTheme.typography.titleMedium)
+            Text(title, style = typography.titleMedium)
             content()
         }
     }
@@ -89,7 +92,7 @@ private fun Section(title: String, content: @Composable () -> Unit) {
 private fun AppTheme(content: @Composable () -> Unit) {
     val dark = isSystemInDarkTheme()
     val colors = when {
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+        SDK_INT >= S -> {
             val context = LocalContext.current
             if (dark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
@@ -99,20 +102,23 @@ private fun AppTheme(content: @Composable () -> Unit) {
     MaterialTheme(colorScheme = colors, content = content)
 }
 
+private val typography: Typography
+    @Composable get() = MaterialTheme.typography
+
 @Preview(name = "Access granted", showBackground = true)
 @Composable
 private fun SettingsScreenPreview() {
     SettingsScreen(
         state = SettingsUiState(
             hasNotificationAccess = true,
-            sessionPackage = "com.spotify.music",
-            sessionTitle = "Some song",
+            sessionPackage = SPOTIFY_PACKAGE,
+            sessionTitle = stringResource(R.string.preview_song),
         ),
         onOpenNotificationSettings = {},
     )
 }
 
-@Preview(name = "No access", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "No access", showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Composable
 private fun SettingsScreenNoAccessPreview() {
     SettingsScreen(state = SettingsUiState(hasNotificationAccess = false), onOpenNotificationSettings = {})

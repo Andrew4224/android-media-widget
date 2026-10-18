@@ -7,6 +7,8 @@
     <string name="widget_grant_access">Tap to grant access</string>
     <string name="widget_nothing_playing">Nothing is playing</string>
     <string name="widget_unknown_title">Unknown title</string>
+    <!-- Title and artist in one line when the widget is too flat for two. -->
+    <string name="widget_title_artist">%1$s · %2$s</string>
 
     <string name="cd_cover">Open player</string>
     <string name="cd_previous">Previous</string>
@@ -25,4 +27,9 @@
     <string name="settings_session_track">Title: %1$s</string>
     <string name="settings_howto_title">Adding the widget</string>
     <string name="settings_howto_text">Long-press an empty spot on your home screen, choose \"Widgets\", find \"Media Widget\" and drag \"Media controls\" onto the home screen. It can be resized to a single row.</string>
+
+    <!-- Sample data for the Android Studio previews only. -->
+    <string name="preview_title" translatable="false">A rather long song title that needs to be ellipsized</string>
+    <string name="preview_artist" translatable="false">Some Artist</string>
+    <string name="preview_song" translatable="false">Some song</string>
 </resources>

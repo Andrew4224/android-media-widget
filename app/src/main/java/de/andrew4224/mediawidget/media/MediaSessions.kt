@@ -3,10 +3,18 @@ package de.andrew4224.mediawidget.media
 import android.content.ComponentName
 import android.content.Context
 import android.graphics.Bitmap
-import android.media.MediaMetadata
+import android.media.MediaMetadata.METADATA_KEY_ALBUM_ART
+import android.media.MediaMetadata.METADATA_KEY_ALBUM_ARTIST
+import android.media.MediaMetadata.METADATA_KEY_ART
+import android.media.MediaMetadata.METADATA_KEY_ARTIST
+import android.media.MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE
+import android.media.MediaMetadata.METADATA_KEY_DISPLAY_TITLE
+import android.media.MediaMetadata.METADATA_KEY_TITLE
 import android.media.session.MediaController
 import android.media.session.MediaSessionManager
-import android.media.session.PlaybackState
+import android.media.session.PlaybackState.STATE_BUFFERING
+import android.media.session.PlaybackState.STATE_CONNECTING
+import android.media.session.PlaybackState.STATE_PLAYING
 import android.util.Log
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.scale
@@ -40,7 +48,7 @@ object MediaSessions {
      */
     fun select(controllers: List<MediaController>): MediaController? =
         controllers.firstOrNull { it.packageName == SPOTIFY_PACKAGE }
-            ?: controllers.firstOrNull { it.playbackState?.state == PlaybackState.STATE_PLAYING }
+            ?: controllers.firstOrNull { it.playbackState?.state == STATE_PLAYING }
             // NOTE: The framework orders active sessions by priority and recent activity,
             // so the first entry is treated as the "last active" session.
             ?: controllers.firstOrNull()
@@ -58,7 +66,7 @@ object MediaSessions {
     }
 
     fun MediaController.isPlaying(): Boolean = when (playbackState?.state) {
-        PlaybackState.STATE_PLAYING, PlaybackState.STATE_BUFFERING, PlaybackState.STATE_CONNECTING -> true
+        STATE_PLAYING, STATE_BUFFERING, STATE_CONNECTING -> true
         else -> false
     }
 
@@ -66,13 +74,13 @@ object MediaSessions {
         val meta = metadata
         return MediaState.Active(
             packageName = packageName,
-            title = meta?.getString(MediaMetadata.METADATA_KEY_TITLE)
-                ?: meta?.getString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE),
-            artist = meta?.getString(MediaMetadata.METADATA_KEY_ARTIST)
-                ?: meta?.getString(MediaMetadata.METADATA_KEY_ALBUM_ARTIST)
-                ?: meta?.getString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE),
-            cover = (meta?.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART)
-                ?: meta?.getBitmap(MediaMetadata.METADATA_KEY_ART))?.downscale(),
+            title = meta?.getString(METADATA_KEY_TITLE)
+                ?: meta?.getString(METADATA_KEY_DISPLAY_TITLE),
+            artist = meta?.getString(METADATA_KEY_ARTIST)
+                ?: meta?.getString(METADATA_KEY_ALBUM_ARTIST)
+                ?: meta?.getString(METADATA_KEY_DISPLAY_SUBTITLE),
+            cover = (meta?.getBitmap(METADATA_KEY_ALBUM_ART)
+                ?: meta?.getBitmap(METADATA_KEY_ART))?.downscale(),
             isPlaying = isPlaying(),
         )
     }

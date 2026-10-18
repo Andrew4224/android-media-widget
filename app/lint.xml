@@ -4,4 +4,6 @@
     <issue id="ObsoleteSdkInt">
         <ignore path="src/main/res/mipmap-anydpi-v26" />
     </issue>
+    <!-- AGP is pinned to the newest version supported by the Android Studio release in use. -->
+    <issue id="AndroidGradlePluginVersion" severity="ignore" />
 </lint>
