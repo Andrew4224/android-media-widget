@@ -71,11 +71,6 @@ decodes the keystore to a temporary file and sets `KEYSTORE_FILE`.
 3. The `Release` workflow builds the signed APK and creates a GitHub release using the matching
    changelog section as release notes.
 
-### Changing the package name
-
-`de.example.mediawidget` is a placeholder. Change `namespace` and `applicationId` in
-`app/build.gradle.kts` and move the sources under `app/src/main/java/` accordingly.
-
 ## Known limitations
 
 - Some launchers do not allow widgets to be resized to a single row, or have rows that are too small

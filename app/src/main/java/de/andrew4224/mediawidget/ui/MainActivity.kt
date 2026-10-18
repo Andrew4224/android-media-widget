@@ -1,4 +1,4 @@
-package de.example.mediawidget.ui
+package de.andrew4224.mediawidget.ui
 
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge

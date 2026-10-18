@@ -1,4 +1,4 @@
-package de.example.mediawidget.widget
+package de.andrew4224.mediawidget.widget
 
 import android.app.Activity
 import android.app.ActivityOptions
@@ -8,8 +8,8 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.glance.action.ActionParameters
-import de.example.mediawidget.media.MediaSessions
-import de.example.mediawidget.ui.MainActivity
+import de.andrew4224.mediawidget.media.MediaSessions
+import de.andrew4224.mediawidget.ui.MainActivity
 
 /**
  * Invisible trampoline started by a widget tap. Starting a real activity first keeps the launch

@@ -1,5 +1,6 @@
-package de.example.mediawidget.ui
+package de.andrew4224.mediawidget.ui
 
+import android.content.res.Configuration
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -22,8 +23,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import de.example.mediawidget.R
+import de.andrew4224.mediawidget.R
 
 @Composable
 fun SettingsScreen(state: SettingsUiState, onOpenNotificationSettings: () -> Unit) {
@@ -95,4 +97,23 @@ private fun AppTheme(content: @Composable () -> Unit) {
         else -> lightColorScheme()
     }
     MaterialTheme(colorScheme = colors, content = content)
+}
+
+@Preview(name = "Access granted", showBackground = true)
+@Composable
+private fun SettingsScreenPreview() {
+    SettingsScreen(
+        state = SettingsUiState(
+            hasNotificationAccess = true,
+            sessionPackage = "com.spotify.music",
+            sessionTitle = "Some song",
+        ),
+        onOpenNotificationSettings = {},
+    )
+}
+
+@Preview(name = "No access", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SettingsScreenNoAccessPreview() {
+    SettingsScreen(state = SettingsUiState(hasNotificationAccess = false), onOpenNotificationSettings = {})
 }

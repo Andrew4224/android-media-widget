@@ -15,7 +15,7 @@ Hintergrund: Das offizielle Spotify-Widget lässt sich auf dem Zielgerät nicht 
 - Build: Gradle Kotlin DSL mit Version Catalog (`libs.versions.toml`)
 - `minSdk` 26, `targetSdk` und `compileSdk` aktuellste stabile Version
 - Testgerät: Fairphone 6 (Standard-Launcher Quickstep)
-- Paketname: `de.example.mediawidget` (Platzhalter, leicht änderbar halten)
+- Paketname: `de.andrew4224.mediawidget`
 - Keine Netzwerkzugriffe, keine Analytics, keine unnötigen Abhängigkeiten
 - Kein Spotify-SDK; ausschließlich Android-Framework-APIs für Mediensteuerung
 

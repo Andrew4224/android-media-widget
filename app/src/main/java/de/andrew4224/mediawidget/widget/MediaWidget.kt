@@ -1,4 +1,4 @@
-package de.example.mediawidget.widget
+package de.andrew4224.mediawidget.widget
 
 import android.content.Context
 import android.content.Intent
@@ -40,12 +40,14 @@ import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
+import androidx.glance.preview.ExperimentalGlancePreviewApi
+import androidx.glance.preview.Preview
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import de.example.mediawidget.R
-import de.example.mediawidget.media.MediaRepository
-import de.example.mediawidget.media.MediaState
+import de.andrew4224.mediawidget.R
+import de.andrew4224.mediawidget.media.MediaRepository
+import de.andrew4224.mediawidget.media.MediaState
 
 class MediaWidget : GlanceAppWidget() {
 
@@ -69,7 +71,7 @@ class MediaWidget : GlanceAppWidget() {
         private val COVER_SIZE = 40.dp
 
         @Composable
-        private fun WidgetContent(state: MediaState) {
+        internal fun WidgetContent(state: MediaState) {
             val wide = LocalSize.current.width >= WIDE.width
             Row(
                 modifier = GlanceModifier
@@ -199,3 +201,31 @@ class MediaWidget : GlanceAppWidget() {
             }
     }
 }
+
+private val previewTrack = MediaState.Active(
+    packageName = "com.spotify.music",
+    title = "A rather long song title that needs to be ellipsized",
+    artist = "Some Artist",
+    cover = null,
+    isPlaying = true,
+)
+
+@OptIn(ExperimentalGlancePreviewApi::class)
+@Preview(widthDp = 320, heightDp = 56)
+@Composable
+private fun WidePreview() = GlanceTheme { MediaWidget.WidgetContent(previewTrack) }
+
+@OptIn(ExperimentalGlancePreviewApi::class)
+@Preview(widthDp = 160, heightDp = 56)
+@Composable
+private fun NarrowPreview() = GlanceTheme { MediaWidget.WidgetContent(previewTrack.copy(isPlaying = false)) }
+
+@OptIn(ExperimentalGlancePreviewApi::class)
+@Preview(widthDp = 320, heightDp = 56)
+@Composable
+private fun NoAccessPreview() = GlanceTheme { MediaWidget.WidgetContent(MediaState.NoAccess) }
+
+@OptIn(ExperimentalGlancePreviewApi::class)
+@Preview(widthDp = 320, heightDp = 56)
+@Composable
+private fun NoSessionPreview() = GlanceTheme { MediaWidget.WidgetContent(MediaState.NoSession) }

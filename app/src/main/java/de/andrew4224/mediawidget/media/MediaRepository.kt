@@ -1,8 +1,8 @@
-package de.example.mediawidget.media
+package de.andrew4224.mediawidget.media
 
 import android.content.Context
 import androidx.glance.appwidget.updateAll
-import de.example.mediawidget.widget.MediaWidget
+import de.andrew4224.mediawidget.widget.MediaWidget
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * In-memory holder of the current [MediaState]. The state is always re-read from the framework,
@@ -37,7 +38,7 @@ object MediaRepository {
         synchronized(this) {
             pendingUpdate?.cancel()
             pendingUpdate = scope.launch {
-                delay(UPDATE_DEBOUNCE_MS)
+                delay(UPDATE_DEBOUNCE_MS.milliseconds)
                 refresh(appContext)
                 MediaWidget().updateAll(appContext)
             }

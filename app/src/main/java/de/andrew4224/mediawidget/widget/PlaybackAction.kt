@@ -1,4 +1,4 @@
-package de.example.mediawidget.widget
+package de.andrew4224.mediawidget.widget
 
 import android.content.Context
 import android.service.notification.NotificationListenerService
@@ -6,11 +6,11 @@ import android.util.Log
 import androidx.glance.GlanceId
 import androidx.glance.action.ActionParameters
 import androidx.glance.appwidget.action.ActionCallback
-import de.example.mediawidget.media.MediaListenerService
-import de.example.mediawidget.media.MediaRepository
-import de.example.mediawidget.media.MediaSessions
-import de.example.mediawidget.media.MediaSessions.isPlaying
-import de.example.mediawidget.media.MediaState
+import de.andrew4224.mediawidget.media.MediaListenerService
+import de.andrew4224.mediawidget.media.MediaRepository
+import de.andrew4224.mediawidget.media.MediaSessions
+import de.andrew4224.mediawidget.media.MediaSessions.isPlaying
+import de.andrew4224.mediawidget.media.MediaState
 
 /** Handles the previous / play-pause / next buttons. */
 class PlaybackAction : ActionCallback {

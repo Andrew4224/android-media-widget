@@ -9,12 +9,11 @@ plugins {
 val releaseKeystore: String? = System.getenv("KEYSTORE_FILE")?.takeIf { it.isNotBlank() }
 
 android {
-    // NOTE: Package name is a placeholder; change namespace + applicationId (and the source folder) together.
-    namespace = "de.example.mediawidget"
+    namespace = "de.andrew4224.mediawidget"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "de.example.mediawidget"
+        applicationId = "de.andrew4224.mediawidget"
         minSdk = 26
         targetSdk = 37
         versionCode = 1
@@ -69,6 +68,13 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    debugImplementation(libs.androidx.compose.ui.tooling)
 
     implementation(libs.androidx.glance.appwidget)
+    implementation(libs.androidx.glance.preview)
+    debugImplementation(libs.androidx.glance.appwidget.preview)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

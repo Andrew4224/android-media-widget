@@ -1,4 +1,4 @@
-package de.example.mediawidget.media
+package de.andrew4224.mediawidget.media
 
 import android.media.MediaMetadata
 import android.media.session.MediaController

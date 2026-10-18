@@ -1,4 +1,4 @@
-package de.example.mediawidget.media
+package de.andrew4224.mediawidget.media
 
 import android.graphics.Bitmap
 
