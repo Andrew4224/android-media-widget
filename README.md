@@ -7,17 +7,20 @@ publishes an Android `MediaSession`.
 Why? The official Spotify widget cannot be made smaller than 4x2 on some launchers. This one is exactly
 one row high.
 
+<!-- TODO: add a screenshot at docs/screenshot.png and uncomment:
 ![Screenshot](docs/screenshot.png)
-<!-- TODO: add a screenshot at docs/screenshot.png -->
+-->
 
 ## Features
 
-- Cover art, title and artist of the current track
-- Previous / play-pause / next buttons
+- Cover art on the left at full height, title and artist on the right, buttons below them
+- Previous / play-pause / next buttons that grow with the widget
+- Adapts to the widget size: one text line on flat widgets, buttons next to the text on very flat
+  widgets, only the three buttons on narrow widgets
 - Tap cover or text to open the player app
 - Prefers Spotify, otherwise the session that is playing, otherwise the most recently active one
-- Responsive: shrinks down to just the three buttons
-- Material You dynamic colors, light and dark theme
+- Uses your system colors (Material You) on Android 12+, Spotify green on older versions;
+  the button area is slightly darker than the background
 - No network access, no analytics, no Spotify SDK – only Android framework APIs
 
 ## Permission: notification access
@@ -74,7 +77,7 @@ decodes the keystore to a temporary file and sets `KEYSTORE_FILE`.
 ## Known limitations
 
 - Some launchers do not allow widgets to be resized to a single row, or have rows that are too small
-  for the 40 dp minimum height. The widget was tested with the Fairphone 6 default launcher (Quickstep).
+  for the 40 dp minimum height. The widget is designed for the Fairphone 6 default launcher (Quickstep).
 - No progress bar or seeking (intentionally, to avoid constant widget updates).
 - If several players are active, Spotify always wins; there is no way to pick another player yet.
 - Some players only expose controls while they are running in the background; if a player was killed
