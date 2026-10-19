@@ -1,7 +1,9 @@
 package de.andrew4224.mediawidget.ui
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS
 import android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS
 import android.view.LayoutInflater
 import android.view.View
@@ -26,6 +28,15 @@ class SettingsFragment : Fragment() {
                     state = state,
                     onOpenNotificationSettings = {
                         startActivity(Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS))
+                    },
+                    onProgressIntervalChange = viewModel::setProgressInterval,
+                    onOpenAppInfo = {
+                        startActivity(
+                            Intent(
+                                ACTION_APPLICATION_DETAILS_SETTINGS,
+                                Uri.fromParts("package", requireContext().packageName, null)
+                            ),
+                        )
                     },
                 )
             }

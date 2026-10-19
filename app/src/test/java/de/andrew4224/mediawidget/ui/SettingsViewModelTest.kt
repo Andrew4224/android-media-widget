@@ -18,12 +18,17 @@ class SettingsViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private var access = false
+    private var widgetPlaced = false
+    private var progressInterval = 5
     private val mediaState = MutableStateFlow<MediaState>(MediaState.NoAccess)
     private var refreshMediaCalls = 0
     private var widgetUpdates = 0
 
     private fun createViewModel() = SettingsViewModel(
         checkAccess = { access },
+        checkWidget = { widgetPlaced },
+        loadProgressInterval = { progressInterval },
+        saveProgressInterval = { progressInterval = it },
         mediaState = mediaState,
         refreshMedia = { refreshMediaCalls++ },
         updateWidgets = { widgetUpdates++ },
@@ -54,7 +59,7 @@ class SettingsViewModelTest {
     }
 
     @Test
-    fun `active session is exposed with package and title`() = runTest {
+    fun `active session is exposed with package, title and artist`() = runTest {
         access = true
         val viewModel = createViewModel()
         collect(viewModel)
@@ -68,7 +73,38 @@ class SettingsViewModelTest {
         )
 
         assertEquals(
-            SettingsUiState(hasNotificationAccess = true, sessionPackage = "com.spotify.music", sessionTitle = "Song"),
+            SettingsUiState(
+                hasNotificationAccess = true,
+                sessionPackage = "com.spotify.music",
+                sessionTitle = "Song",
+                sessionArtist = "Artist",
+            ),
+            viewModel.uiState.value,
+        )
+    }
+
+    @Test
+    fun `remembered track is exposed as remembered`() = runTest {
+        access = true
+        val viewModel = createViewModel()
+        collect(viewModel)
+
+        mediaState.value = MediaState.Active(
+            "com.spotify.music",
+            "Song",
+            null,
+            null,
+            isPlaying = false,
+            isRemembered = true
+        )
+
+        assertEquals(
+            SettingsUiState(
+                hasNotificationAccess = true,
+                sessionPackage = "com.spotify.music",
+                sessionTitle = "Song",
+                isRemembered = true,
+            ),
             viewModel.uiState.value,
         )
     }
@@ -102,8 +138,7 @@ class SettingsViewModelTest {
     @Test
     fun `refresh picks up revoked access`() = runTest {
         access = true
-        val viewModel = createViewModel()/** Dependencies are passed in as functions so the ViewModel can be unit-tested on the JVM. */
-
+        val viewModel = createViewModel()
         collect(viewModel)
 
         access = false
@@ -111,6 +146,43 @@ class SettingsViewModelTest {
 
         assertFalse(viewModel.uiState.value.hasNotificationAccess)
         assertEquals(1, widgetUpdates)
+    }
+
+    @Test
+    fun `refresh picks up a newly placed widget`() = runTest {
+        val viewModel = createViewModel()
+        collect(viewModel)
+        assertFalse(viewModel.uiState.value.hasWidget)
+
+        widgetPlaced = true
+        viewModel.refresh()
+
+        assertTrue(viewModel.uiState.value.hasWidget)
+    }
+
+    @Test
+    fun `changing the progress interval saves it and updates widgets`() = runTest {
+        val viewModel = createViewModel()
+        collect(viewModel)
+        assertEquals(5, viewModel.uiState.value.progressInterval)
+
+        viewModel.setProgressInterval(2)
+
+        assertEquals(2, progressInterval)
+        assertEquals(2, viewModel.uiState.value.progressInterval)
+        assertEquals(1, refreshMediaCalls)
+        assertEquals(1, widgetUpdates)
+    }
+
+    @Test
+    fun `progress can be turned off`() = runTest {
+        val viewModel = createViewModel()
+        collect(viewModel)
+
+        viewModel.setProgressInterval(0)
+
+        assertEquals(0, progressInterval)
+        assertEquals(0, viewModel.uiState.value.progressInterval)
     }
 
     @Test

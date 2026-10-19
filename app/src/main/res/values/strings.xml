@@ -4,8 +4,8 @@
     <string name="widget_name">Media controls</string>
     <string name="widget_description">Shows and controls the current media playback in a single row.</string>
 
-    <string name="widget_grant_access">Tap to grant access</string>
-    <string name="widget_nothing_playing">Nothing is playing</string>
+    <string name="widget_grant_access">Notification access not granted. Tap to set it up.</string>
+    <string name="widget_nothing_playing">Nothing is playing. Tap to open your player.</string>
     <string name="widget_unknown_title">Unknown title</string>
     <!-- Title and artist in one line when the widget is too flat for two. -->
     <string name="widget_title_artist">%1$s · %2$s</string>
@@ -20,13 +20,27 @@
     <string name="settings_access_granted">Access granted.</string>
     <string name="settings_access_missing">Access not granted. The widget cannot see any player yet.</string>
     <string name="settings_access_reason">Android only lets apps with notification access read active media sessions. Notifications themselves are never read or stored.</string>
+    <string name="settings_access_restricted">Android may block this access for apps installed from outside an app store. In that case, open the app info of Media Widget, tap the three-dot menu in the top right corner, choose \"Allow restricted settings\" and try again.</string>
+    <string name="settings_access_revoke">You can revoke the access at any time using the button below.</string>
     <string name="settings_open_access">Open settings</string>
     <string name="settings_session_title">Detected session</string>
     <string name="settings_session_none">No active media session.</string>
+    <string name="settings_session_remembered">No active media session. The widget shows the last played track:</string>
     <string name="settings_session_package">Player: %1$s</string>
     <string name="settings_session_track">Title: %1$s</string>
+    <string name="settings_session_artist">Artist: %1$s</string>
+    <string name="settings_progress_title">Playback progress</string>
+    <string name="settings_progress_interval">Update interval</string>
+    <string name="settings_progress_off">Off</string>
+    <string name="settings_progress_seconds">%1$d s</string>
+    <string name="settings_progress_cost">Extra CPU load: about %1$d %% of one core while music is playing and the screen is on.</string>
+    <string name="settings_progress_cost_off">No extra battery use.</string>
+    <string name="settings_progress_text">While music is playing, a subtle fill grows behind the widget from left to right and shows how far the song has played. The widget is only refreshed while your screen is on and unlocked. Each refresh takes about 0.15 s of CPU time (measured on a test device), so shorter intervals move more smoothly but use more battery. 5 s is a good balance.</string>
+    <string name="settings_battery_title">Battery optimization</string>
+    <string name="settings_battery_text">If the widget sometimes stops updating, Android may be restricting the app in the background. Open the app info, go to \"App battery usage\" and choose \"Unrestricted\". The exact names can differ depending on your device.</string>
+    <string name="settings_open_app_info">Open app info</string>
     <string name="settings_howto_title">Adding the widget</string>
-    <string name="settings_howto_text">Long-press an empty spot on your home screen, choose \"Widgets\", find \"Media Widget\" and drag \"Media controls\" onto the home screen. It can be resized to a single row.</string>
+    <string name="settings_howto_text">Long-press an empty spot on your home screen, choose \"Widgets\", find \"Media Widget\" and drag \"Media controls\" onto the home screen.</string>
 
     <!-- Sample data for the Android Studio previews only. -->
     <string name="preview_title" translatable="false">A rather long song title that needs to be ellipsized</string>

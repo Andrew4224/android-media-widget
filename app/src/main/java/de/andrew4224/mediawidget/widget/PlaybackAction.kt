@@ -1,8 +1,10 @@
 package de.andrew4224.mediawidget.widget
 
 import android.content.Context
-import android.service.notification.NotificationListenerService
 import android.util.Log
+import android.view.KeyEvent.KEYCODE_MEDIA_NEXT
+import android.view.KeyEvent.KEYCODE_MEDIA_PLAY
+import android.view.KeyEvent.KEYCODE_MEDIA_PREVIOUS
 import androidx.glance.GlanceId
 import androidx.glance.action.ActionParameters
 import androidx.glance.appwidget.action.ActionCallback
@@ -16,16 +18,18 @@ import de.andrew4224.mediawidget.media.MediaState
 class PlaybackAction : ActionCallback {
 
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
-        // If the system unbound our listener (e.g. after a long idle period), ask for a rebind
-        // so widget updates resume. Transport controls below work regardless.
-        if (!MediaListenerService.isConnected && MediaSessions.hasNotificationAccess(context)) {
-            NotificationListenerService.requestRebind(MediaSessions.listenerComponent(context))
-        }
+        MediaListenerService.ensureConnected(context)
 
         val shownPackage = (MediaRepository.state.value as? MediaState.Active)?.packageName
         val controller = MediaSessions.find(context, shownPackage)
         if (controller == null) {
-            Log.i(TAG, "No media session for command ${parameters[COMMAND]}")
+            Log.i(TAG, "No media session for command ${parameters[COMMAND]}, sending media key")
+            val keyCode = when (parameters[COMMAND]) {
+                PREVIOUS -> KEYCODE_MEDIA_PREVIOUS
+                NEXT -> KEYCODE_MEDIA_NEXT
+                else -> KEYCODE_MEDIA_PLAY
+            }
+            MediaSessions.dispatchMediaKey(context, keyCode)
         } else {
             val controls = controller.transportControls
             when (parameters[COMMAND]) {

@@ -1,8 +1,6 @@
 package de.andrew4224.mediawidget.widget
 
 import android.content.Context
-import android.content.Intent
-import android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -22,7 +20,6 @@ import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.actionRunCallback
-import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
@@ -41,15 +38,15 @@ import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
 import androidx.glance.layout.width
-import androidx.glance.preview.ExperimentalGlancePreviewApi
-import androidx.glance.preview.Preview
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
+import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import de.andrew4224.mediawidget.R
+import de.andrew4224.mediawidget.media.MediaListenerService
 import de.andrew4224.mediawidget.media.MediaRepository
-import de.andrew4224.mediawidget.media.MediaSessions.SPOTIFY_PACKAGE
 import de.andrew4224.mediawidget.media.MediaState
+import de.andrew4224.mediawidget.ui.MainActivity
 
 class MediaWidget : GlanceAppWidget() {
 
@@ -59,6 +56,7 @@ class MediaWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         // Re-read on every (re)start so the widget is correct even after process death.
+        MediaListenerService.ensureConnected(context)
         MediaRepository.refresh(context)
         provideContent {
             val state by MediaRepository.state.collectAsState()
@@ -69,8 +67,14 @@ class MediaWidget : GlanceAppWidget() {
     }
 
     companion object {
-        /** Below this width only the three buttons are shown. */
+        /** Below this width the cover is hidden. */
         private val MIN_WIDTH_FOR_INFO = 200.dp
+
+        /** Below this width messages are shown as an icon. */
+        private val MIN_WIDTH_FOR_MESSAGE_TEXT = 100.dp
+
+        /** Narrow widgets below this height show only the three buttons. */
+        private val MIN_HEIGHT_FOR_NARROW_INFO = 96.dp
 
         /** Below this height title and artist share one line to leave room for the buttons. */
         private val MIN_HEIGHT_FOR_TWO_LINES = 88.dp
@@ -86,46 +90,87 @@ class MediaWidget : GlanceAppWidget() {
                     .fillMaxSize()
                     .appWidgetBackground()
                     .cornerRadius(16.dp)
-                    .background(primaryContainer)
-                    .padding(PADDING),
-                contentAlignment = Alignment.Center,
+                    .background(primaryContainer),
             ) {
-                when (state) {
-                    MediaState.NoAccess -> Message(
-                        text = stringResource(R.string.widget_grant_access),
-                        onClick = actionStartActivity(Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS)),
-                    )
-                    MediaState.NoSession -> Message(
-                        text = stringResource(R.string.widget_nothing_playing),
-                        onClick = openPlayer(packageName = null),
-                    )
-                    is MediaState.Active -> Player(state)
+                val progress = (state as? MediaState.Active)?.progress
+                if (progress != null) {
+                    Box(
+                        GlanceModifier.width(LocalSize.current.width * progress).fillMaxHeight()
+                            .background(ProgressOverlay)
+                    ) {}
+                }
+                Box(
+                    modifier = GlanceModifier.fillMaxSize().padding(PADDING),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Content(state)
                 }
             }
         }
 
         @Composable
-        private fun Message(text: String, onClick: Action) {
+        private fun Content(state: MediaState) {
+            when (state) {
+                MediaState.NoAccess -> Message(
+                    text = stringResource(R.string.widget_grant_access),
+                    icon = R.drawable.ic_lock,
+                    onClick = actionStartActivity<MainActivity>(),
+                )
+
+                MediaState.NoSession -> Message(
+                    text = stringResource(R.string.widget_nothing_playing),
+                    icon = R.drawable.ic_help,
+                    onClick = openPlayer(packageName = null),
+                )
+
+                is MediaState.Active -> Player(state)
+            }
+        }
+
+        @Composable
+        private fun Message(text: String, icon: Int, onClick: Action) {
             Box(
                 modifier = GlanceModifier.fillMaxSize().clickable(onClick),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(
-                    text = text,
-                    maxLines = 1,
-                    style = TextStyle(color = onPrimaryContainer, fontSize = 14.sp),
-                )
+                if (LocalSize.current.width < MIN_WIDTH_FOR_MESSAGE_TEXT) {
+                    Image(
+                        provider = ImageProvider(icon),
+                        contentDescription = text,
+                        colorFilter = ColorFilter.tint(onPrimaryContainer),
+                        contentScale = ContentScale.Fit,
+                        modifier = GlanceModifier.fillMaxSize().padding(12.dp),
+                    )
+                } else {
+                    Text(
+                        text = text,
+                        maxLines = 2,
+                        style = TextStyle(
+                            color = onPrimaryContainer,
+                            fontSize = 14.sp,
+                            textAlign = TextAlign.Center
+                        ),
+                    )
+                }
             }
         }
 
         @Composable
         private fun Player(state: MediaState.Active) {
             val size = LocalSize.current
+            val open = openPlayer(state.packageName)
             if (size.width < MIN_WIDTH_FOR_INFO) {
-                Buttons(state, GlanceModifier.fillMaxSize())
+                if (size.height < MIN_HEIGHT_FOR_NARROW_INFO) {
+                    Buttons(state, GlanceModifier.fillMaxSize())
+                } else {
+                    Column(modifier = GlanceModifier.fillMaxSize()) {
+                        TrackInfo(state, open, singleLine = false)
+                        Spacer(GlanceModifier.height(4.dp))
+                        Buttons(state, GlanceModifier.fillMaxWidth().defaultWeight())
+                    }
+                }
                 return
             }
-            val open = openPlayer(state.packageName)
             val innerHeight = (size.height - PADDING * 2).coerceAtLeast(24.dp)
             Row(modifier = GlanceModifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
                 // Square cover over the full inner height, flush left.
@@ -237,42 +282,3 @@ class MediaWidget : GlanceAppWidget() {
             }
     }
 }
-
-private val previewTrack: MediaState.Active
-    @Composable get() = MediaState.Active(
-        packageName = SPOTIFY_PACKAGE,
-        title = stringResource(R.string.preview_title),
-        artist = stringResource(R.string.preview_artist),
-        cover = null,
-        isPlaying = true,
-    )
-
-@OptIn(ExperimentalGlancePreviewApi::class)
-@Preview(widthDp = 320, heightDp = 100)
-@Composable
-private fun WidePreview() = WidgetTheme { MediaWidget.WidgetContent(previewTrack) }
-
-@OptIn(ExperimentalGlancePreviewApi::class)
-@Preview(widthDp = 160, heightDp = 80)
-@Composable
-private fun NarrowPreview() = WidgetTheme { MediaWidget.WidgetContent(previewTrack.copy(isPlaying = false)) }
-
-@OptIn(ExperimentalGlancePreviewApi::class)
-@Preview(widthDp = 320, heightDp = 72)
-@Composable
-private fun CompactPreview() = WidgetTheme { MediaWidget.WidgetContent(previewTrack) }
-
-@OptIn(ExperimentalGlancePreviewApi::class)
-@Preview(widthDp = 320, heightDp = 48)
-@Composable
-private fun FlatPreview() = WidgetTheme { MediaWidget.WidgetContent(previewTrack) }
-
-@OptIn(ExperimentalGlancePreviewApi::class)
-@Preview(widthDp = 320, heightDp = 64)
-@Composable
-private fun NoAccessPreview() = WidgetTheme { MediaWidget.WidgetContent(MediaState.NoAccess) }
-
-@OptIn(ExperimentalGlancePreviewApi::class)
-@Preview(widthDp = 320, heightDp = 56)
-@Composable
-private fun NoSessionPreview() = WidgetTheme { MediaWidget.WidgetContent(MediaState.NoSession) }

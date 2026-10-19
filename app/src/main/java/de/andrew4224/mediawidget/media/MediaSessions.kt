@@ -3,21 +3,27 @@ package de.andrew4224.mediawidget.media
 import android.content.ComponentName
 import android.content.Context
 import android.graphics.Bitmap
+import android.media.AudioManager
 import android.media.MediaMetadata.METADATA_KEY_ALBUM_ART
 import android.media.MediaMetadata.METADATA_KEY_ALBUM_ARTIST
 import android.media.MediaMetadata.METADATA_KEY_ART
 import android.media.MediaMetadata.METADATA_KEY_ARTIST
 import android.media.MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE
 import android.media.MediaMetadata.METADATA_KEY_DISPLAY_TITLE
+import android.media.MediaMetadata.METADATA_KEY_DURATION
 import android.media.MediaMetadata.METADATA_KEY_TITLE
 import android.media.session.MediaController
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState.STATE_BUFFERING
 import android.media.session.PlaybackState.STATE_CONNECTING
 import android.media.session.PlaybackState.STATE_PLAYING
+import android.os.SystemClock
 import android.util.Log
+import android.view.KeyEvent
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.scale
+import de.andrew4224.mediawidget.AppSettings
+import de.andrew4224.mediawidget.media.MediaSessions.select
 
 /** Stateless helpers around [MediaSessionManager]. */
 object MediaSessions {
@@ -61,8 +67,16 @@ object MediaSessions {
 
     fun readState(context: Context): MediaState {
         if (!hasNotificationAccess(context)) return MediaState.NoAccess
-        val controller = select(activeControllers(context)) ?: return MediaState.NoSession
-        return controller.toState()
+        val controller = select(activeControllers(context))
+            ?: return LastTrack.load(context) ?: MediaState.NoSession
+        return controller.toState(withProgress = AppSettings.progressInterval(context) > 0)
+            .also { LastTrack.save(context, it) }
+    }
+
+    fun dispatchMediaKey(context: Context, keyCode: Int) {
+        val audio = context.getSystemService(AudioManager::class.java) ?: return
+        audio.dispatchMediaKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, keyCode))
+        audio.dispatchMediaKeyEvent(KeyEvent(KeyEvent.ACTION_UP, keyCode))
     }
 
     fun MediaController.isPlaying(): Boolean = when (playbackState?.state) {
@@ -70,7 +84,7 @@ object MediaSessions {
         else -> false
     }
 
-    private fun MediaController.toState(): MediaState.Active {
+    private fun MediaController.toState(withProgress: Boolean): MediaState.Active {
         val meta = metadata
         return MediaState.Active(
             packageName = packageName,
@@ -82,6 +96,18 @@ object MediaSessions {
             cover = (meta?.getBitmap(METADATA_KEY_ALBUM_ART)
                 ?: meta?.getBitmap(METADATA_KEY_ART))?.downscale(),
             isPlaying = isPlaying(),
+            progress = if (withProgress) progress() else null,
+        )
+    }
+
+    private fun MediaController.progress(): Float? {
+        val state = playbackState ?: return null
+        return playbackProgress(
+            position = state.position,
+            duration = metadata?.getLong(METADATA_KEY_DURATION) ?: 0,
+            elapsedSinceUpdate = SystemClock.elapsedRealtime() - state.lastPositionUpdateTime,
+            speed = state.playbackSpeed,
+            isPlaying = state.state == STATE_PLAYING,
         )
     }
 

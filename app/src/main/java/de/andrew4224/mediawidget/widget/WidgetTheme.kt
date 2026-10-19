@@ -25,6 +25,8 @@ private val fallbackColors = ColorProviders(
 /** Darkens whatever is behind it, independent of the color scheme. */
 internal val DarkenOverlay = ColorProvider(day = Color(0x29000000), night = Color(0x29000000))
 
+internal val ProgressOverlay = ColorProvider(day = Color(0x14000000), night = Color(0x1FFFFFFF))
+
 /**
  * Widget colors: the user's system colors (Material You) where available, otherwise Spotify green.
  * The widget uses primaryContainer as background and onPrimaryContainer for content.

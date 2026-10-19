@@ -7,7 +7,7 @@ sealed interface MediaState {
     /** Notification access has not been granted, so sessions cannot be read. */
     data object NoAccess : MediaState
 
-    /** Access granted, but no player currently exposes a media session. */
+    /** Access granted, but no player exposes a media session and no track was remembered yet. */
     data object NoSession : MediaState
 
     data class Active(
@@ -16,5 +16,7 @@ sealed interface MediaState {
         val artist: String?,
         val cover: Bitmap?,
         val isPlaying: Boolean,
+        val isRemembered: Boolean = false,
+        val progress: Float? = null,
     ) : MediaState
 }
