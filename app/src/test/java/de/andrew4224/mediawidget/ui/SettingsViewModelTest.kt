@@ -23,12 +23,32 @@ class SettingsViewModelTest {
     private val mediaState = MutableStateFlow<MediaState>(MediaState.NoAccess)
     private var refreshMediaCalls = 0
     private var widgetUpdates = 0
+    private val knownPlayers = mutableListOf<String>()
+    private val ignoredPlayers = mutableSetOf<String>()
+    private var favoritePlayer: String? = null
+    private val appLabels = mutableMapOf<String, String>()
 
     private fun createViewModel() = SettingsViewModel(
         checkAccess = { access },
         checkWidget = { widgetPlaced },
         loadProgressInterval = { progressInterval },
         saveProgressInterval = { progressInterval = it },
+        loadPlayers = {
+            knownPlayers.map {
+                PlayerOption(
+                    it,
+                    it,
+                    it in ignoredPlayers,
+                    it == favoritePlayer
+                )
+            }
+        },
+        savePlayerIgnored = { packageName, ignored ->
+            if (ignored) ignoredPlayers += packageName else ignoredPlayers -= packageName
+        },
+        saveFavoritePlayer = { favoritePlayer = it },
+        forgetPlayer = { knownPlayers -= it },
+        appLabel = { appLabels[it] },
         mediaState = mediaState,
         refreshMedia = { refreshMediaCalls++ },
         updateWidgets = { widgetUpdates++ },
@@ -195,5 +215,107 @@ class SettingsViewModelTest {
 
         assertEquals(2, refreshMediaCalls)
         assertEquals(0, widgetUpdates)
+    }
+
+    @Test
+    fun `refresh picks up newly detected players`() = runTest {
+        access = true
+        val viewModel = createViewModel()
+        collect(viewModel)
+        assertTrue(viewModel.uiState.value.players.isEmpty())
+
+        knownPlayers += "com.example.player"
+        viewModel.refresh()
+
+        assertEquals(
+            listOf(PlayerOption("com.example.player", "com.example.player", isIgnored = false)),
+            viewModel.uiState.value.players,
+        )
+    }
+
+    @Test
+    fun `turning a player off ignores it and updates widgets`() = runTest {
+        access = true
+        knownPlayers += listOf("com.example.player", "com.spotify.music")
+        val viewModel = createViewModel()
+        collect(viewModel)
+
+        viewModel.setPlayerEnabled("com.example.player", enabled = false)
+
+        assertEquals(setOf("com.example.player"), ignoredPlayers)
+        assertEquals(
+            listOf(true, false),
+            viewModel.uiState.value.players.map { it.isIgnored },
+        )
+        assertEquals(1, refreshMediaCalls)
+        assertEquals(1, widgetUpdates)
+    }
+
+    @Test
+    fun `turning a player back on stops ignoring it`() = runTest {
+        knownPlayers += "com.example.player"
+        ignoredPlayers += "com.example.player"
+        val viewModel = createViewModel()
+        collect(viewModel)
+
+        viewModel.setPlayerEnabled("com.example.player", enabled = true)
+
+        assertTrue(ignoredPlayers.isEmpty())
+        assertFalse(viewModel.uiState.value.players.single().isIgnored)
+    }
+
+    @Test
+    fun `choosing a favorite saves it and updates widgets`() = runTest {
+        knownPlayers += listOf("com.example.player", "com.spotify.music")
+        val viewModel = createViewModel()
+        collect(viewModel)
+
+        viewModel.setFavorite("com.example.player", favorite = true)
+
+        assertEquals("com.example.player", favoritePlayer)
+        assertEquals(listOf(true, false), viewModel.uiState.value.players.map { it.isFavorite })
+        assertEquals(1, widgetUpdates)
+    }
+
+    @Test
+    fun `removing the favorite clears it`() = runTest {
+        knownPlayers += "com.example.player"
+        favoritePlayer = "com.example.player"
+        val viewModel = createViewModel()
+        collect(viewModel)
+
+        viewModel.setFavorite("com.example.player", favorite = false)
+
+        assertNull(favoritePlayer)
+        assertFalse(viewModel.uiState.value.players.single().isFavorite)
+    }
+
+    @Test
+    fun `forgetting a player removes it and updates widgets`() = runTest {
+        knownPlayers += listOf("com.example.player", "com.spotify.music")
+        val viewModel = createViewModel()
+        collect(viewModel)
+
+        viewModel.forget("com.example.player")
+
+        assertEquals(
+            listOf("com.spotify.music"),
+            viewModel.uiState.value.players.map { it.packageName })
+        assertEquals(1, refreshMediaCalls)
+        assertEquals(1, widgetUpdates)
+    }
+
+    @Test
+    fun `active session is exposed with the app name`() = runTest {
+        access = true
+        appLabels["com.spotify.music"] = "Spotify"
+        val viewModel = createViewModel()
+        collect(viewModel)
+
+        mediaState.value =
+            MediaState.Active("com.spotify.music", "Song", null, null, isPlaying = true)
+
+        assertEquals("Spotify", viewModel.uiState.value.sessionLabel)
+        assertEquals("com.spotify.music", viewModel.uiState.value.sessionPackage)
     }
 }

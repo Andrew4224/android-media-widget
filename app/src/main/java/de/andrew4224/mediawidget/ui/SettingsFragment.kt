@@ -12,12 +12,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.commit
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 class SettingsFragment : Fragment() {
 
-    private val viewModel: SettingsViewModel by viewModels { SettingsViewModel.Factory }
+    private val viewModel: SettingsViewModel by activityViewModels { SettingsViewModel.Factory }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
         ComposeView(requireContext()).apply {
@@ -30,6 +31,13 @@ class SettingsFragment : Fragment() {
                         startActivity(Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS))
                     },
                     onProgressIntervalChange = viewModel::setProgressInterval,
+                    onOpenPlayers = {
+                        parentFragmentManager.commit {
+                            setReorderingAllowed(true)
+                            replace(android.R.id.content, PlayersFragment())
+                            addToBackStack(null)
+                        }
+                    },
                     onOpenAppInfo = {
                         startActivity(
                             Intent(

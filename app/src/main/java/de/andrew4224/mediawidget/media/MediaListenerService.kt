@@ -29,7 +29,9 @@ class MediaListenerService : NotificationListenerService() {
     private var trackedController: MediaController? = null
 
     private val sessionsListener = MediaSessionManager.OnActiveSessionsChangedListener { controllers ->
-        track(MediaSessions.select(controllers.orEmpty()))
+        val allowed = MediaSessions.withoutIgnored(this, controllers.orEmpty())
+        PendingPlay.startIfReady(allowed)
+        track(MediaSessions.select(this, allowed))
         MediaRepository.refreshAndUpdateWidgets(this)
     }
 
@@ -63,7 +65,10 @@ class MediaListenerService : NotificationListenerService() {
     }
 
     private val settingsListener =
-        SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> updateProgressTicker() }
+        SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
+            syncTracking()
+            updateProgressTicker()
+        }
 
     override fun onListenerConnected() {
         isConnected = true
@@ -100,7 +105,7 @@ class MediaListenerService : NotificationListenerService() {
 
     private fun syncTracking() {
         if (!isConnected) return
-        track(MediaSessions.select(MediaSessions.activeControllers(this)))
+        track(MediaSessions.select(this, MediaSessions.activeControllers(this)))
     }
 
     private fun track(controller: MediaController?) {

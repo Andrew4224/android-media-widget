@@ -194,21 +194,38 @@ class MediaWidget : GlanceAppWidget() {
         @Composable
         private fun Cover(state: MediaState.Active, open: Action, size: Dp) {
             val description = stringResource(R.string.cd_cover)
-            val modifier = GlanceModifier.size(size).cornerRadius(12.dp).clickable(open)
-            if (state.cover != null) {
-                Image(
-                    provider = ImageProvider(state.cover),
-                    contentDescription = description,
-                    contentScale = ContentScale.Crop,
-                    modifier = modifier,
-                )
-            } else {
-                Image(
-                    provider = ImageProvider(R.drawable.ic_music_note),
-                    contentDescription = description,
-                    colorFilter = ColorFilter.tint(onPrimaryContainer),
-                    modifier = modifier.background(DarkenOverlay).padding(size / 4),
-                )
+            Box(
+                modifier = GlanceModifier.size(size).cornerRadius(12.dp).clickable(open),
+                contentAlignment = Alignment.BottomEnd,
+            ) {
+                if (state.cover != null) {
+                    Image(
+                        provider = ImageProvider(state.cover),
+                        contentDescription = description,
+                        contentScale = ContentScale.Crop,
+                        modifier = GlanceModifier.fillMaxSize(),
+                    )
+                } else {
+                    Image(
+                        provider = ImageProvider(R.drawable.ic_music_note),
+                        contentDescription = description,
+                        colorFilter = ColorFilter.tint(onPrimaryContainer),
+                        modifier = GlanceModifier.fillMaxSize().background(DarkenOverlay)
+                            .padding(size / 4),
+                    )
+                }
+                if (state.isIgnoredPlayerConnected) {
+                    Image(
+                        provider = ImageProvider(R.drawable.ic_open_in_new),
+                        contentDescription = stringResource(R.string.cd_other_player_connected),
+                        colorFilter = ColorFilter.tint(onPrimaryContainer),
+                        modifier = GlanceModifier
+                            .size(size / 3)
+                            .cornerRadius(8.dp)
+                            .background(primaryContainer)
+                            .padding(size / 18),
+                    )
+                }
             }
         }
 
@@ -217,22 +234,43 @@ class MediaWidget : GlanceAppWidget() {
             val title = state.title ?: stringResource(R.string.widget_unknown_title)
             val artist = state.artist?.takeIf { it.isNotBlank() }
             val titleStyle = TextStyle(color = onPrimaryContainer, fontSize = 16.sp, fontWeight = FontWeight.Medium)
-            Column(modifier = GlanceModifier.fillMaxWidth().clickable(open)) {
-                if (singleLine) {
-                    Text(
-                        text = if (artist == null) title else stringResource(R.string.widget_title_artist, title, artist),
-                        maxLines = 1,
-                        style = titleStyle,
-                    )
-                } else {
-                    Text(text = title, maxLines = 1, style = titleStyle)
-                    if (artist != null) {
+            Row(
+                modifier = GlanceModifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = GlanceModifier.defaultWeight().clickable(open)) {
+                    if (singleLine) {
                         Text(
-                            text = artist,
+                            text = if (artist == null) title else stringResource(
+                                R.string.widget_title_artist,
+                                title,
+                                artist
+                            ),
                             maxLines = 1,
-                            style = TextStyle(color = onPrimaryContainer, fontSize = 14.sp),
+                            style = titleStyle,
                         )
+                    } else {
+                        Text(text = title, maxLines = 1, style = titleStyle)
+                        if (artist != null) {
+                            Text(
+                                text = artist,
+                                maxLines = 1,
+                                style = TextStyle(color = onPrimaryContainer, fontSize = 14.sp),
+                            )
+                        }
                     }
+                }
+                if (state.canSwitchPlayer) {
+                    Image(
+                        provider = ImageProvider(R.drawable.ic_swap_horiz),
+                        contentDescription = stringResource(R.string.cd_switch_player),
+                        colorFilter = ColorFilter.tint(onPrimaryContainer),
+                        modifier = GlanceModifier
+                            .size(28.dp)
+                            .cornerRadius(14.dp)
+                            .clickable(playback(PlaybackAction.SWITCH_PLAYER))
+                            .padding(4.dp),
+                    )
                 }
             }
         }
@@ -244,24 +282,46 @@ class MediaWidget : GlanceAppWidget() {
                 modifier = modifier.cornerRadius(12.dp).background(DarkenOverlay),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                ControlButton(R.drawable.ic_skip_previous, R.string.cd_previous, PlaybackAction.PREVIOUS)
-                if (state.isPlaying) {
-                    ControlButton(R.drawable.ic_pause, R.string.cd_pause, PlaybackAction.PLAY_PAUSE)
-                } else {
-                    ControlButton(R.drawable.ic_play, R.string.cd_play, PlaybackAction.PLAY_PAUSE)
+                ControlButton(
+                    R.drawable.ic_skip_previous,
+                    R.string.cd_previous,
+                    playback(PlaybackAction.PREVIOUS)
+                )
+                when {
+                    state.isIgnoredPlayerConnected -> ControlButton(
+                        R.drawable.ic_open_in_new,
+                        R.string.cd_open_and_play,
+                        openPlayer(state.packageName, play = true),
+                    )
+
+                    state.isPlaying -> ControlButton(
+                        R.drawable.ic_pause,
+                        R.string.cd_pause,
+                        playback(PlaybackAction.PLAY_PAUSE)
+                    )
+
+                    else -> ControlButton(
+                        R.drawable.ic_play,
+                        R.string.cd_play,
+                        playback(PlaybackAction.PLAY_PAUSE)
+                    )
                 }
-                ControlButton(R.drawable.ic_skip_next, R.string.cd_next, PlaybackAction.NEXT)
+                ControlButton(
+                    R.drawable.ic_skip_next,
+                    R.string.cd_next,
+                    playback(PlaybackAction.NEXT)
+                )
             }
         }
 
         @Composable
-        private fun RowScope.ControlButton(icon: Int, description: Int, command: String) {
+        private fun RowScope.ControlButton(icon: Int, description: Int, onClick: Action) {
             Box(
                 modifier = GlanceModifier
                     .defaultWeight()
                     .fillMaxHeight()
                     .cornerRadius(12.dp)
-                    .clickable(actionRunCallback<PlaybackAction>(actionParametersOf(PlaybackAction.COMMAND to command))),
+                    .clickable(onClick),
                 contentAlignment = Alignment.Center,
             ) {
                 Image(
@@ -274,11 +334,19 @@ class MediaWidget : GlanceAppWidget() {
             }
         }
 
-        private fun openPlayer(packageName: String?): Action =
+        private fun playback(command: String): Action =
+            actionRunCallback<PlaybackAction>(actionParametersOf(PlaybackAction.COMMAND to command))
+
+        private fun openPlayer(packageName: String?, play: Boolean = false): Action =
             if (packageName == null) {
                 actionStartActivity<LaunchPlayerActivity>()
             } else {
-                actionStartActivity<LaunchPlayerActivity>(actionParametersOf(LaunchPlayerActivity.PACKAGE to packageName))
+                actionStartActivity<LaunchPlayerActivity>(
+                    actionParametersOf(
+                        LaunchPlayerActivity.PACKAGE to packageName,
+                        LaunchPlayerActivity.PLAY to play
+                    ),
+                )
             }
     }
 }

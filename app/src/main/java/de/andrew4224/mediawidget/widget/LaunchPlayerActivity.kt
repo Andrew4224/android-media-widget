@@ -12,7 +12,9 @@ import android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE
 import android.os.Bundle
 import android.util.Log
 import androidx.glance.action.ActionParameters
+import de.andrew4224.mediawidget.AppSettings
 import de.andrew4224.mediawidget.media.MediaSessions
+import de.andrew4224.mediawidget.media.PendingPlay
 import de.andrew4224.mediawidget.ui.MainActivity
 
 /**
@@ -24,17 +26,30 @@ class LaunchPlayerActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val requested = intent.getStringExtra(PACKAGE.name)
-        if (!launchSession(requested) && !launchPackage(requested ?: MediaSessions.SPOTIFY_PACKAGE)) {
-            startActivity(Intent(this, MainActivity::class.java))
+        val packageName = intent.getStringExtra(PACKAGE.name) ?: AppSettings.favoritePlayer(this)
+        val play = intent.getBooleanExtra(PLAY.name, false)
+        when {
+            packageName == null -> startActivity(Intent(this, MainActivity::class.java))
+            play && playSession(packageName) -> Unit
+            launchSession(packageName) -> Unit
+            launchPackage(packageName) -> if (play) PendingPlay.request(packageName)
+            else -> startActivity(Intent(this, MainActivity::class.java))
         }
         finish()
     }
 
-    private fun launchSession(packageName: String?): Boolean {
-        if (packageName == null) return false
-        val controller = MediaSessions.activeControllers(this).firstOrNull { it.packageName == packageName }
-        val sessionActivity = controller?.sessionActivity ?: return false
+    private fun session(packageName: String) =
+        MediaSessions.activeControllers(this).firstOrNull { it.packageName == packageName }
+
+    /** The player got its session back since the widget was drawn, so it can simply play. */
+    private fun playSession(packageName: String): Boolean {
+        val controller = session(packageName) ?: return false
+        controller.transportControls.play()
+        return true
+    }
+
+    private fun launchSession(packageName: String): Boolean {
+        val sessionActivity = session(packageName)?.sessionActivity ?: return false
         return try {
             sessionActivity.send(this, 0, null, null, null, null, backgroundStartOptions())
             true
@@ -65,5 +80,6 @@ class LaunchPlayerActivity : Activity() {
     companion object {
         private const val TAG = "LaunchPlayerActivity"
         val PACKAGE = ActionParameters.Key<String>("package")
+        val PLAY = ActionParameters.Key<Boolean>("play")
     }
 }

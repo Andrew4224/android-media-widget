@@ -37,7 +37,16 @@ object MediaSessions {
     fun hasNotificationAccess(context: Context): Boolean =
         context.packageName in NotificationManagerCompat.getEnabledListenerPackages(context)
 
-    fun activeControllers(context: Context): List<MediaController> {
+    fun activeControllers(context: Context): List<MediaController> =
+        withoutIgnored(context, allActiveControllers(context))
+
+    /** Whether a player turned off in the settings has a session, which would receive media keys. */
+    fun hasIgnoredSession(context: Context): Boolean {
+        val ignored = AppSettings.ignoredPlayers(context)
+        return allActiveControllers(context).any { it.packageName in ignored }
+    }
+
+    private fun allActiveControllers(context: Context): List<MediaController> {
         if (!hasNotificationAccess(context)) return emptyList()
         val manager = context.getSystemService(MediaSessionManager::class.java) ?: return emptyList()
         return try {
@@ -48,30 +57,56 @@ object MediaSessions {
         }
     }
 
-    /**
-     * Picks the session to show: Spotify first, then any playing session, then the most
-     * recently active one.
-     */
-    fun select(controllers: List<MediaController>): MediaController? =
-        controllers.firstOrNull { it.packageName == SPOTIFY_PACKAGE }
-            ?: controllers.firstOrNull { it.playbackState?.state == STATE_PLAYING }
-            // NOTE: The framework orders active sessions by priority and recent activity,
-            // so the first entry is treated as the "last active" session.
-            ?: controllers.firstOrNull()
+    /** Remembers every player seen so far and drops the ones turned off in the settings. */
+    fun withoutIgnored(
+        context: Context,
+        controllers: List<MediaController>
+    ): List<MediaController> {
+        AppSettings.addKnownPlayers(context, controllers.map { it.packageName })
+        val ignored = AppSettings.ignoredPlayers(context)
+        return controllers.filter { it.packageName !in ignored }
+    }
+
+    /** See [selectSession]. */
+    fun select(context: Context, controllers: List<MediaController>): MediaController? =
+        selectSession(controllers.map { it.toSession() }, selectionSettings(context))?.handle
 
     /** Prefers the session of [packageName] (what the widget currently shows), else [select]. */
     fun find(context: Context, packageName: String?): MediaController? {
         val controllers = activeControllers(context)
-        return controllers.firstOrNull { it.packageName == packageName } ?: select(controllers)
+        return controllers.firstOrNull { it.packageName == packageName } ?: select(
+            context,
+            controllers
+        )
+    }
+
+    fun switchPlayer(context: Context, current: String?) {
+        nextPlayer(activeControllers(context).map { it.packageName }, current)
+            ?.let { AppSettings.setSelectedPlayer(context, it) }
     }
 
     fun readState(context: Context): MediaState {
         if (!hasNotificationAccess(context)) return MediaState.NoAccess
-        val controller = select(activeControllers(context))
-            ?: return LastTrack.load(context) ?: MediaState.NoSession
-        return controller.toState(withProgress = AppSettings.progressInterval(context) > 0)
+        val sessions = allActiveControllers(context).map { it.toSession() }
+        AppSettings.addKnownPlayers(context, sessions.map { it.packageName })
+        val settings = selectionSettings(context)
+        val selection = chooseSession(sessions, settings)
+        if (!selection.keepSelected) AppSettings.setSelectedPlayer(context, null)
+        val controller = selection.session?.handle
+            ?: return fallbackState(LastTrack.load(context), selection, settings.ignored)
+        return controller.toState(context, withProgress = AppSettings.progressInterval(context) > 0)
+            .copy(canSwitchPlayer = selection.canSwitch)
             .also { LastTrack.save(context, it) }
     }
+
+    private fun selectionSettings(context: Context) = SelectionSettings(
+        ignored = AppSettings.ignoredPlayers(context),
+        favorite = AppSettings.favoritePlayer(context),
+        selected = AppSettings.selectedPlayer(context),
+    )
+
+    private fun MediaController.toSession() =
+        Session(packageName, isPlaying = playbackState?.state == STATE_PLAYING, handle = this)
 
     fun dispatchMediaKey(context: Context, keyCode: Int) {
         val audio = context.getSystemService(AudioManager::class.java) ?: return
@@ -84,7 +119,10 @@ object MediaSessions {
         else -> false
     }
 
-    private fun MediaController.toState(withProgress: Boolean): MediaState.Active {
+    private fun MediaController.toState(
+        context: Context,
+        withProgress: Boolean
+    ): MediaState.Active {
         val meta = metadata
         return MediaState.Active(
             packageName = packageName,
@@ -93,8 +131,12 @@ object MediaSessions {
             artist = meta?.getString(METADATA_KEY_ARTIST)
                 ?: meta?.getString(METADATA_KEY_ALBUM_ARTIST)
                 ?: meta?.getString(METADATA_KEY_DISPLAY_SUBTITLE),
-            cover = (meta?.getBitmap(METADATA_KEY_ALBUM_ART)
-                ?: meta?.getBitmap(METADATA_KEY_ART))?.downscale(),
+            cover = CoverCache.resolve(
+                context,
+                packageName,
+                (meta?.getBitmap(METADATA_KEY_ALBUM_ART)
+                    ?: meta?.getBitmap(METADATA_KEY_ART))?.downscale(),
+            ),
             isPlaying = isPlaying(),
             progress = if (withProgress) progress() else null,
         )

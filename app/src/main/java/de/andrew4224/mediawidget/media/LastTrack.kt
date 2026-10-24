@@ -13,33 +13,22 @@ object LastTrack {
     private const val KEY_PACKAGE = "package"
     private const val KEY_TITLE = "title"
     private const val KEY_ARTIST = "artist"
-    private const val COVER_FILE = "last_cover.png"
+    private const val LEGACY_COVER_FILE = "last_cover.png"
 
     @Volatile
     private var savedKey: String? = null
 
     fun save(context: Context, state: MediaState.Active) {
         if (state.title == null) return
-        val key = listOf(
-            state.packageName,
-            state.title,
-            state.artist,
-            state.cover != null
-        ).joinToString("\u0000")
+        val key = listOf(state.packageName, state.title, state.artist).joinToString("\u0000")
         if (key == savedKey) return
         synchronized(this) {
-            val coverFile = coverFile(context)
-            if (state.cover != null) {
-                coverFile.outputStream()
-                    .use { state.cover.compress(Bitmap.CompressFormat.PNG, 100, it) }
-            } else {
-                coverFile.delete()
-            }
             prefs(context).edit {
                 putString(KEY_PACKAGE, state.packageName)
                 putString(KEY_TITLE, state.title)
                 putString(KEY_ARTIST, state.artist)
             }
+            File(context.filesDir, LEGACY_COVER_FILE).delete()
             savedKey = key
         }
     }
@@ -47,20 +36,28 @@ object LastTrack {
     fun load(context: Context): MediaState.Active? {
         val prefs = prefs(context)
         val packageName = prefs.getString(KEY_PACKAGE, null) ?: return null
-        val cover = synchronized(this) {
-            coverFile(context).takeIf { it.exists() }?.let { BitmapFactory.decodeFile(it.path) }
-        }
         return MediaState.Active(
             packageName = packageName,
             title = prefs.getString(KEY_TITLE, null),
             artist = prefs.getString(KEY_ARTIST, null),
-            cover = cover,
+            cover = CoverCache.get(context, packageName) ?: migrateLegacyCover(
+                context,
+                packageName
+            ),
             isPlaying = false,
             isRemembered = true,
         )
     }
 
-    private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+    /** Moves the single cover file of version 0.2 into the [CoverCache]. */
+    @Synchronized
+    private fun migrateLegacyCover(context: Context, packageName: String): Bitmap? {
+        val file = File(context.filesDir, LEGACY_COVER_FILE)
+        if (!file.exists()) return null
+        val cover = BitmapFactory.decodeFile(file.path)
+        file.delete()
+        return CoverCache.resolve(context, packageName, cover)
+    }
 
-    private fun coverFile(context: Context) = File(context.filesDir, COVER_FILE)
+    private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 }

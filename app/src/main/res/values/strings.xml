@@ -15,6 +15,10 @@
     <string name="cd_play">Play</string>
     <string name="cd_pause">Pause</string>
     <string name="cd_next">Next</string>
+    <string name="cd_open_and_play">Open player and play</string>
+    <string name="cd_other_player_connected">A turned-off player is connected</string>
+    <string name="cd_favorite">Favorite</string>
+    <string name="cd_switch_player">Switch player</string>
 
     <string name="settings_access_title">Notification access</string>
     <string name="settings_access_granted">Access granted.</string>
@@ -29,6 +33,20 @@
     <string name="settings_session_package">Player: %1$s</string>
     <string name="settings_session_track">Title: %1$s</string>
     <string name="settings_session_artist">Artist: %1$s</string>
+    <string name="settings_players_title">Players</string>
+    <string name="settings_players_none">No players detected yet. Start playback in a player and it shows up here.</string>
+    <string name="settings_players_text">All players detected so far. The widget ignores players that are turned off.</string>
+    <string name="settings_players_favorite">Tap the star to choose your favorite. The widget always prefers it over other players, and a tap on "Nothing is playing" opens it.</string>
+    <string name="settings_players_connected">Android sends play to the player that was active last. If that is a turned-off player, the widget shows the open symbol on the cover and the play button instead. Tapping it opens the shown player and starts playback.</string>
+    <string name="settings_players_forget">Swipe a player to the left to forget it. It shows up again as soon as it is used again. Uninstalled players are removed automatically.</string>
+    <string name="settings_players_switch">If several players are active, the widget shows a switch button next to the title.</string>
+    <string name="settings_players_forget_action">Forget</string>
+    <string name="settings_players_favorite_summary">Favorite: %1$s</string>
+    <string name="settings_players_no_favorite">No favorite selected.</string>
+    <string name="settings_players_summary">Turned on: %1$d of %2$d</string>
+    <string name="settings_manage_players">Manage players</string>
+    <string name="cd_back">Back</string>
+    <string name="settings_players_all_off">All players are turned off. Turn on at least one player, otherwise the widget cannot show or control anything.</string>
     <string name="settings_progress_title">Playback progress</string>
     <string name="settings_progress_interval">Update interval</string>
     <string name="settings_progress_off">Off</string>

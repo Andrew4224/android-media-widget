@@ -51,6 +51,7 @@ fun SettingsScreen(
     onOpenNotificationSettings: () -> Unit,
     onOpenAppInfo: () -> Unit,
     onProgressIntervalChange: (Int) -> Unit,
+    onOpenPlayers: () -> Unit,
 ) {
     AppTheme {
         Scaffold(containerColor = colorScheme.surfaceContainer) { padding ->
@@ -107,9 +108,16 @@ fun SettingsScreen(
                             Text(
                                 stringResource(
                                     R.string.settings_session_package,
-                                    state.sessionPackage
-                                )
+                                    state.sessionLabel ?: state.sessionPackage,
+                                ),
                             )
+                            if (state.sessionLabel != null) {
+                                Text(
+                                    state.sessionPackage,
+                                    style = typography.bodySmall,
+                                    color = colorScheme.onSurfaceVariant,
+                                )
+                            }
                             Text(
                                 stringResource(
                                     R.string.settings_session_track,
@@ -125,6 +133,40 @@ fun SettingsScreen(
                                     )
                                 )
                             }
+                        }
+                    }
+                }
+
+                if (state.hasNotificationAccess) {
+                    Section(stringResource(R.string.settings_players_title)) {
+                        if (state.players.isEmpty()) {
+                            Text(stringResource(R.string.settings_players_none))
+                        } else {
+                            val enabled = state.players.count { !it.isIgnored }
+                            Text(
+                                stringResource(
+                                    R.string.settings_players_summary,
+                                    enabled,
+                                    state.players.size
+                                )
+                            )
+                            Text(
+                                state.players.firstOrNull { it.isFavorite }
+                                    ?.let {
+                                        stringResource(
+                                            R.string.settings_players_favorite_summary,
+                                            it.label
+                                        )
+                                    }
+                                    ?: stringResource(R.string.settings_players_no_favorite),
+                            )
+                            if (enabled == 0) {
+                                AllPlayersOffWarning()
+                            }
+                            SettingsButton(
+                                stringResource(R.string.settings_manage_players),
+                                onOpenPlayers
+                            )
                         }
                     }
                 }
@@ -193,7 +235,7 @@ private fun cpuLoadPercent(intervalSeconds: Int): Int =
     (REFRESH_CPU_MS / (intervalSeconds * 10f)).roundToInt().coerceAtLeast(1)
 
 @Composable
-private fun SettingsButton(text: String, onClick: () -> Unit) {
+internal fun SettingsButton(text: String, onClick: () -> Unit) {
     Button(
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(
@@ -212,7 +254,7 @@ private fun SettingsButton(text: String, onClick: () -> Unit) {
 }
 
 @Composable
-private fun Section(title: String, content: @Composable () -> Unit) {
+internal fun Section(title: String, content: @Composable () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = colorScheme.surfaceContainerLowest),
@@ -225,7 +267,7 @@ private fun Section(title: String, content: @Composable () -> Unit) {
 }
 
 @Composable
-private fun AppTheme(content: @Composable () -> Unit) {
+internal fun AppTheme(content: @Composable () -> Unit) {
     val dark = isSystemInDarkTheme()
     val colors = when {
         SDK_INT >= S -> {
@@ -238,10 +280,10 @@ private fun AppTheme(content: @Composable () -> Unit) {
     MaterialTheme(colorScheme = colors, content = content)
 }
 
-private val typography: Typography
+internal val typography: Typography
     @Composable get() = MaterialTheme.typography
 
-private val colorScheme: ColorScheme
+internal val colorScheme: ColorScheme
     @Composable get() = MaterialTheme.colorScheme
 
 @Preview(name = "Access granted", showBackground = true)
@@ -251,12 +293,14 @@ private fun SettingsScreenPreview() {
         state = SettingsUiState(
             hasNotificationAccess = true,
             sessionPackage = SPOTIFY_PACKAGE,
+            sessionLabel = "Spotify",
             sessionTitle = stringResource(R.string.preview_song),
             sessionArtist = stringResource(R.string.preview_artist),
         ),
         onOpenNotificationSettings = {},
         onOpenAppInfo = {},
         onProgressIntervalChange = {},
+        onOpenPlayers = {},
     )
 }
 
@@ -268,6 +312,7 @@ private fun SettingsScreenNoAccessPreview() {
         onOpenNotificationSettings = {},
         onOpenAppInfo = {},
         onProgressIntervalChange = {},
+        onOpenPlayers = {},
     )
 }
 
@@ -278,6 +323,7 @@ private fun SettingsScreenRememberedPreview() {
         state = SettingsUiState(
             hasNotificationAccess = true,
             sessionPackage = SPOTIFY_PACKAGE,
+            sessionLabel = "Spotify",
             sessionTitle = stringResource(R.string.preview_song),
             sessionArtist = stringResource(R.string.preview_artist),
             isRemembered = true,
@@ -285,6 +331,7 @@ private fun SettingsScreenRememberedPreview() {
         onOpenNotificationSettings = {},
         onOpenAppInfo = {},
         onProgressIntervalChange = {},
+        onOpenPlayers = {},
     )
 }
 
@@ -295,13 +342,19 @@ private fun SettingsScreenWidgetPlacedPreview() {
         state = SettingsUiState(
             hasNotificationAccess = true,
             sessionPackage = SPOTIFY_PACKAGE,
+            sessionLabel = "Spotify",
             sessionTitle = stringResource(R.string.preview_song),
             sessionArtist = stringResource(R.string.preview_artist),
             hasWidget = true,
             progressInterval = 0,
+            players = listOf(
+                PlayerOption(SPOTIFY_PACKAGE, "Spotify", isIgnored = false, isFavorite = true),
+                PlayerOption("com.google.android.youtube", "YouTube", isIgnored = true),
+            ),
         ),
         onOpenNotificationSettings = {},
         onOpenAppInfo = {},
         onProgressIntervalChange = {},
+        onOpenPlayers = {},
     )
 }

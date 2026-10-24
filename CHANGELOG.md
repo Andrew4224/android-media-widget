@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3] - 2026-10-25
+
+### Added
+
+- Every player that shows up is remembered and listed on a separate players page in the settings.
+  Players that are turned off there are ignored by the widget.
+- A favorite player can be chosen on the players page. It replaces the fixed preference for
+  Spotify, which stays the default favorite.
+- Players can be forgotten by swiping them away on the players page. Uninstalled players and their
+  covers are removed automatically. The page shows the app icon of each player.
+- If several players are active, a switch button next to the title shows the next one. The picked
+  player stays in the widget as long as it has a media session.
+- If a turned-off player is connected, the widget shows an open symbol on the cover and the play
+  button. Play then opens the shown player and starts playback, because Android would otherwise
+  send it to the turned-off player.
+
+### Changed
+
+- "Detected session" in the settings shows the app name of the player, with the package name below.
+
+### Fixed
+
+- The cover no longer disappears when a player briefly sends its track info without a cover. The
+  last cover of each player is kept until the player sends a new one, also for the remembered
+  track.
+
 ## [0.2] - 2026-10-19
 
 ### Added
@@ -66,7 +92,8 @@ First public release.
 - Settings screen showing the notification access status and the detected session.
 - GitHub Actions workflows for CI builds and signed tag releases.
 
-[Unreleased]: https://github.com/Andrew4224/android-media-widget/compare/v0.2...HEAD
+[Unreleased]: https://github.com/Andrew4224/android-media-widget/compare/v0.3...HEAD
 
+[0.3]: https://github.com/Andrew4224/android-media-widget/compare/v0.2...v0.3
 [0.2]: https://github.com/Andrew4224/android-media-widget/compare/v0.1...v0.2
 [0.1]: https://github.com/Andrew4224/android-media-widget/releases/tag/v0.1

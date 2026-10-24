@@ -17,6 +17,10 @@ sealed interface MediaState {
         val cover: Bitmap?,
         val isPlaying: Boolean,
         val isRemembered: Boolean = false,
+        /** A turned-off player holds the media keys, so play has to open [packageName] instead. */
+        val isIgnoredPlayerConnected: Boolean = false,
+        /** More than one allowed player has a session, so the widget offers to switch. */
+        val canSwitchPlayer: Boolean = false,
         val progress: Float? = null,
     ) : MediaState
 }

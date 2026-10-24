@@ -5,5 +5,5 @@
         path="last_track.xml" />
     <exclude
         domain="file"
-        path="last_cover.png" />
+        path="covers" />
 </full-backup-content>

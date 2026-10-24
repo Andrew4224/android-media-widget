@@ -21,21 +21,36 @@ class PlaybackAction : ActionCallback {
         MediaListenerService.ensureConnected(context)
 
         val shownPackage = (MediaRepository.state.value as? MediaState.Active)?.packageName
+        if (parameters[COMMAND] == SWITCH_PLAYER) {
+            MediaSessions.switchPlayer(context, shownPackage)
+            MediaRepository.refreshAndUpdateWidgets(context)
+            return
+        }
         val controller = MediaSessions.find(context, shownPackage)
-        if (controller == null) {
-            Log.i(TAG, "No media session for command ${parameters[COMMAND]}, sending media key")
-            val keyCode = when (parameters[COMMAND]) {
-                PREVIOUS -> KEYCODE_MEDIA_PREVIOUS
-                NEXT -> KEYCODE_MEDIA_NEXT
-                else -> KEYCODE_MEDIA_PLAY
+        when {
+            controller != null -> {
+                val controls = controller.transportControls
+                when (parameters[COMMAND]) {
+                    PREVIOUS -> controls.skipToPrevious()
+                    NEXT -> controls.skipToNext()
+                    PLAY_PAUSE -> if (controller.isPlaying()) controls.pause() else controls.play()
+                }
             }
-            MediaSessions.dispatchMediaKey(context, keyCode)
-        } else {
-            val controls = controller.transportControls
-            when (parameters[COMMAND]) {
-                PREVIOUS -> controls.skipToPrevious()
-                NEXT -> controls.skipToNext()
-                PLAY_PAUSE -> if (controller.isPlaying()) controls.pause() else controls.play()
+
+            MediaSessions.hasIgnoredSession(context) ->
+                Log.i(
+                    TAG,
+                    "Only ignored players have a session, dropping command ${parameters[COMMAND]}"
+                )
+
+            else -> {
+                Log.i(TAG, "No media session for command ${parameters[COMMAND]}, sending media key")
+                val keyCode = when (parameters[COMMAND]) {
+                    PREVIOUS -> KEYCODE_MEDIA_PREVIOUS
+                    NEXT -> KEYCODE_MEDIA_NEXT
+                    else -> KEYCODE_MEDIA_PLAY
+                }
+                MediaSessions.dispatchMediaKey(context, keyCode)
             }
         }
         MediaRepository.refreshAndUpdateWidgets(context)
@@ -47,5 +62,6 @@ class PlaybackAction : ActionCallback {
         const val PREVIOUS = "previous"
         const val PLAY_PAUSE = "play_pause"
         const val NEXT = "next"
+        const val SWITCH_PLAYER = "switch_player"
     }
 }

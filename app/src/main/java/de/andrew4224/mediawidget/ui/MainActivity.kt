@@ -5,7 +5,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.commit
 
-/** Hosts [SettingsFragment] and nothing else. */
+/** Hosts [SettingsFragment] and its [PlayersFragment] subpage. */
 class MainActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {

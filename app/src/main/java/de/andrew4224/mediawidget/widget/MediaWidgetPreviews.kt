@@ -104,3 +104,23 @@ private fun NoAccessSingleCellPreview() =
 @Composable
 private fun NoSessionSingleCellPreview() =
     WidgetTheme { MediaWidget.WidgetContent(MediaState.NoSession) }
+
+@OptIn(ExperimentalGlancePreviewApi::class)
+@Preview(widthDp = 320, heightDp = 100)
+@Composable
+private fun IgnoredPlayerConnectedPreview() = WidgetTheme {
+    MediaWidget.WidgetContent(
+        previewTrack.copy(
+            isPlaying = false,
+            isRemembered = true,
+            isIgnoredPlayerConnected = true,
+            progress = null
+        ),
+    )
+}
+
+@OptIn(ExperimentalGlancePreviewApi::class)
+@Preview(widthDp = 320, heightDp = 100)
+@Composable
+private fun SwitchPlayerPreview() =
+    WidgetTheme { MediaWidget.WidgetContent(previewTrack.copy(canSwitchPlayer = true)) }

@@ -21,7 +21,9 @@ Many media widgets take up at least two rows on the home screen. Media Widget ne
 - Cover art, title, artist and playback controls in a single row
 - Adapts its layout to the widget size, from 4x1 down to 1x1
 - Opens the player with a tap on the cover or title
-- Picks the active player automatically, preferring Spotify
+- Picks the active player automatically, preferring your favorite (Spotify by default)
+- Players you don't want can be turned off in the settings and are then ignored
+- Switch between several active players with a button next to the title
 - Keeps showing the last track after the player has closed – tap play to resume
 - Shows the playback progress as a subtle fill behind the widget, with an adjustable update
   interval (1–10 seconds or off)
@@ -66,7 +68,10 @@ names can differ depending on your device.
   unlocked, not continuously.
 - Short intervals cost battery: each refresh takes about 0.15 s of CPU time, which adds about 16 %
   load on one CPU core at 1 s and about 3 % at 5 s (measured on a test device).
-- If Spotify has a media session, it is always shown, even if another player is active.
+- If your favorite player has a media session, it is always shown, even if another player is
+  active.
+- Android sends play to the player that was active last. If that is a turned-off player, the
+  widget shows an open symbol instead, and play opens the shown player before playback starts.
 - When the player has closed, play resumes the last active player on the device, which may not be
   the one shown.
 
