@@ -16,8 +16,8 @@ android {
         applicationId = "de.andrew4224.mediawidget"
         minSdk = 26
         targetSdk = 37
-        versionCode = 3
-        versionName = "0.3"
+        versionCode = 4
+        versionName = "0.3.1"
     }
 
     signingConfigs {

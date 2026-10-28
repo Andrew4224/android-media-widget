@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-10-28
+
 ### Added
 
 - The play button shows a spinner while the player is starting or buffering, for up to 15 seconds.
@@ -101,8 +103,9 @@ First public release.
 - Settings screen showing the notification access status and the detected session.
 - GitHub Actions workflows for CI builds and signed tag releases.
 
-[Unreleased]: https://github.com/Andrew4224/android-media-widget/compare/v0.3...HEAD
+[Unreleased]: https://github.com/Andrew4224/android-media-widget/compare/v0.3.1...HEAD
 
+[0.3.1]: https://github.com/Andrew4224/android-media-widget/compare/v0.3...v0.3.1
 [0.3]: https://github.com/Andrew4224/android-media-widget/compare/v0.2...v0.3
 [0.2]: https://github.com/Andrew4224/android-media-widget/compare/v0.1...v0.2
 [0.1]: https://github.com/Andrew4224/android-media-widget/releases/tag/v0.1
