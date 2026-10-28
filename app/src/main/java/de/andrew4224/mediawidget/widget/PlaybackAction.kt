@@ -13,6 +13,8 @@ import de.andrew4224.mediawidget.media.MediaRepository
 import de.andrew4224.mediawidget.media.MediaSessions
 import de.andrew4224.mediawidget.media.MediaSessions.isPlaying
 import de.andrew4224.mediawidget.media.MediaState
+import de.andrew4224.mediawidget.media.PendingPlay
+import de.andrew4224.mediawidget.media.StartingPlayback
 
 /** Handles the previous / play-pause / next buttons. */
 class PlaybackAction : ActionCallback {
@@ -33,7 +35,15 @@ class PlaybackAction : ActionCallback {
                 when (parameters[COMMAND]) {
                     PREVIOUS -> controls.skipToPrevious()
                     NEXT -> controls.skipToNext()
-                    PLAY_PAUSE -> if (controller.isPlaying()) controls.pause() else controls.play()
+                    PLAY_PAUSE -> if (controller.isPlaying()) {
+                        StartingPlayback.stop()
+                        PendingPlay.cancel()
+                        controls.pause()
+                    } else {
+                        MediaRepository.startPlayback(context)
+                        PendingPlay.request(controller.packageName)
+                        PendingPlay.startIfReady(listOf(controller))
+                    }
                 }
             }
 
@@ -49,6 +59,10 @@ class PlaybackAction : ActionCallback {
                     PREVIOUS -> KEYCODE_MEDIA_PREVIOUS
                     NEXT -> KEYCODE_MEDIA_NEXT
                     else -> KEYCODE_MEDIA_PLAY
+                }
+                if (keyCode == KEYCODE_MEDIA_PLAY) {
+                    MediaRepository.startPlayback(context)
+                    shownPackage?.let(PendingPlay::request)
                 }
                 MediaSessions.dispatchMediaKey(context, keyCode)
             }

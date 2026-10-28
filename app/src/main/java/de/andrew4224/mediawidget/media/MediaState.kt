@@ -16,6 +16,8 @@ sealed interface MediaState {
         val artist: String?,
         val cover: Bitmap?,
         val isPlaying: Boolean,
+        /** Play was tapped or the player is buffering, but it does not play yet. */
+        val isStarting: Boolean = false,
         val isRemembered: Boolean = false,
         /** A turned-off player holds the media keys, so play has to open [packageName] instead. */
         val isIgnoredPlayerConnected: Boolean = false,

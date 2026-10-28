@@ -13,6 +13,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.glance.action.ActionParameters
 import de.andrew4224.mediawidget.AppSettings
+import de.andrew4224.mediawidget.media.MediaRepository
 import de.andrew4224.mediawidget.media.MediaSessions
 import de.andrew4224.mediawidget.media.PendingPlay
 import de.andrew4224.mediawidget.ui.MainActivity
@@ -28,6 +29,7 @@ class LaunchPlayerActivity : Activity() {
         super.onCreate(savedInstanceState)
         val packageName = intent.getStringExtra(PACKAGE.name) ?: AppSettings.favoritePlayer(this)
         val play = intent.getBooleanExtra(PLAY.name, false)
+        if (play && packageName != null) MediaRepository.startPlayback(this)
         when {
             packageName == null -> startActivity(Intent(this, MainActivity::class.java))
             play && playSession(packageName) -> Unit
@@ -44,7 +46,8 @@ class LaunchPlayerActivity : Activity() {
     /** The player got its session back since the widget was drawn, so it can simply play. */
     private fun playSession(packageName: String): Boolean {
         val controller = session(packageName) ?: return false
-        controller.transportControls.play()
+        PendingPlay.request(packageName)
+        PendingPlay.startIfReady(listOf(controller))
         return true
     }
 

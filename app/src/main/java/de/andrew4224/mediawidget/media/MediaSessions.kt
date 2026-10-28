@@ -92,11 +92,12 @@ object MediaSessions {
         val settings = selectionSettings(context)
         val selection = chooseSession(sessions, settings)
         if (!selection.keepSelected) AppSettings.setSelectedPlayer(context, null)
-        val controller = selection.session?.handle
-            ?: return fallbackState(LastTrack.load(context), selection, settings.ignored)
-        return controller.toState(context, withProgress = AppSettings.progressInterval(context) > 0)
-            .copy(canSwitchPlayer = selection.canSwitch)
-            .also { LastTrack.save(context, it) }
+        val state = selection.session?.handle
+            ?.toState(context, withProgress = AppSettings.progressInterval(context) > 0)
+            ?.copy(canSwitchPlayer = selection.canSwitch)
+            ?.also { LastTrack.save(context, it) }
+            ?: fallbackState(LastTrack.load(context), selection, settings.ignored)
+        return StartingPlayback.apply(state)
     }
 
     private fun selectionSettings(context: Context) = SelectionSettings(
@@ -138,6 +139,7 @@ object MediaSessions {
                     ?: meta?.getBitmap(METADATA_KEY_ART))?.downscale(),
             ),
             isPlaying = isPlaying(),
+            isStarting = playbackState?.state.let { it == STATE_BUFFERING || it == STATE_CONNECTING },
             progress = if (withProgress) progress() else null,
         )
     }

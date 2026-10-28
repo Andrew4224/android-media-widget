@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- The play button shows a spinner while the player is starting or buffering, for up to 15 seconds.
+
+### Fixed
+
+- The play buttons keep asking the player to play every 2 seconds until it does, instead of giving
+  up when the player ignored the first request.
+
 ## [0.3] - 2026-10-25
 
 ### Added

@@ -14,6 +14,7 @@
     <string name="cd_previous">Previous</string>
     <string name="cd_play">Play</string>
     <string name="cd_pause">Pause</string>
+    <string name="cd_starting">Starting playback</string>
     <string name="cd_next">Next</string>
     <string name="cd_open_and_play">Open player and play</string>
     <string name="cd_other_player_connected">A turned-off player is connected</string>

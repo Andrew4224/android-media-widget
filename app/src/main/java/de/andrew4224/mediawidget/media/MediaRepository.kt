@@ -24,6 +24,7 @@ object MediaRepository {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var pendingUpdate: Job? = null
+    private var startTimeoutUpdate: Job? = null
 
     private val _state = MutableStateFlow<MediaState>(MediaState.NoSession)
     val state: StateFlow<MediaState> = _state.asStateFlow()
@@ -43,5 +44,19 @@ object MediaRepository {
                 MediaWidget().updateAll(appContext)
             }
         }
+    }
+
+    /** Shows the spinner on the play button until the player plays or [StartingPlayback] gives up. */
+    fun startPlayback(context: Context) {
+        val appContext = context.applicationContext
+        StartingPlayback.start()
+        synchronized(this) {
+            startTimeoutUpdate?.cancel()
+            startTimeoutUpdate = scope.launch {
+                delay((StartingPlayback.TIMEOUT_MS + UPDATE_DEBOUNCE_MS).milliseconds)
+                refreshAndUpdateWidgets(appContext)
+            }
+        }
+        refreshAndUpdateWidgets(appContext)
     }
 }

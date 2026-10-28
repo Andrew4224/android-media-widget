@@ -17,6 +17,7 @@ import androidx.glance.action.Action
 import androidx.glance.action.actionParametersOf
 import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
+import androidx.glance.appwidget.CircularProgressIndicator
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.actionRunCallback
@@ -38,6 +39,8 @@ import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
 import androidx.glance.layout.width
+import androidx.glance.semantics.contentDescription
+import androidx.glance.semantics.semantics
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
@@ -287,24 +290,27 @@ class MediaWidget : GlanceAppWidget() {
                     R.string.cd_previous,
                     playback(PlaybackAction.PREVIOUS)
                 )
+                val playAction = if (state.isIgnoredPlayerConnected) {
+                    openPlayer(state.packageName, play = true)
+                } else {
+                    playback(PlaybackAction.PLAY_PAUSE)
+                }
                 when {
+                    state.isStarting -> LoadingButton(playAction)
+
                     state.isIgnoredPlayerConnected -> ControlButton(
                         R.drawable.ic_open_in_new,
                         R.string.cd_open_and_play,
-                        openPlayer(state.packageName, play = true),
+                        playAction,
                     )
 
                     state.isPlaying -> ControlButton(
                         R.drawable.ic_pause,
                         R.string.cd_pause,
-                        playback(PlaybackAction.PLAY_PAUSE)
+                        playAction
                     )
 
-                    else -> ControlButton(
-                        R.drawable.ic_play,
-                        R.string.cd_play,
-                        playback(PlaybackAction.PLAY_PAUSE)
-                    )
+                    else -> ControlButton(R.drawable.ic_play, R.string.cd_play, playAction)
                 }
                 ControlButton(
                     R.drawable.ic_skip_next,
@@ -330,6 +336,25 @@ class MediaWidget : GlanceAppWidget() {
                     colorFilter = ColorFilter.tint(onPrimaryContainer),
                     contentScale = ContentScale.Fit,
                     modifier = GlanceModifier.fillMaxSize(),
+                )
+            }
+        }
+
+        @Composable
+        private fun RowScope.LoadingButton(onClick: Action) {
+            val description = stringResource(R.string.cd_starting)
+            Box(
+                modifier = GlanceModifier
+                    .defaultWeight()
+                    .fillMaxHeight()
+                    .cornerRadius(12.dp)
+                    .clickable(onClick)
+                    .semantics { contentDescription = description },
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator(
+                    color = onPrimaryContainer,
+                    modifier = GlanceModifier.fillMaxSize().padding(8.dp),
                 )
             }
         }
